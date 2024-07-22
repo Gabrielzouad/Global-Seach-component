@@ -24,10 +24,10 @@ export function Navbar() {
     <NavigationMenu className='flex mx-auto mt-5'>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
+          <NavigationMenuTrigger>Navigation item?</NavigationMenuTrigger>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Components</NavigationMenuTrigger>
+          <NavigationMenuTrigger>Lorem ipsum</NavigationMenuTrigger>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <SearchButton onClickFunction={toggleSearch} />

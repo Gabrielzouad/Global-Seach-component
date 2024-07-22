@@ -2,10 +2,10 @@ import { Keyword } from './types';
 
 export const keywords: { [key: string]: Keyword[] } = {
     Documentation: [
-      { name: 'Github Repository', href: 'https://github.com/your-repository' },
-      { name: 'Github Profile', href: 'https://github.com/your-profile' },
-      { name: 'LinkedIn', href: 'https://linkedin.com/in/your-profile' },
-      { name: 'Personal Website', href: 'https://yourwebsite.com' },
+      { name: 'Github Repository', href: 'https://github.com/Gabrielzouad/Global-Seach-component' },
+      { name: 'Github Profile', href: 'https://github.com/Gabrielzouad' },
+      { name: 'LinkedIn', href: 'https://www.linkedin.com/in/gabrielzouad/' },
+      { name: 'Personal Website', href: 'https://gabrielzouad.no' },
     ],
     Inspiration: [
       { name: 'ShadCN', href: 'https://ui.shadcn.com' },
