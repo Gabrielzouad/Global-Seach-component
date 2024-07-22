@@ -1,7 +1,3 @@
-Sure, here's the updated README with the revised hooks section based on the provided `hooks.ts` file:
-
----
-
 # Global Search Component
 
 This project implements a global search component in a Next.js application. The global search component allows users to search through content efficiently and can be easily integrated into other Next.js projects.
