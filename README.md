@@ -19,7 +19,7 @@ This project implements a global search component in a Next.js application. The 
 To get started with this project, clone the repository and install the dependencies:
 
 ```bash
-git clone <repository-url>
+git clone [<repository-url>](https://github.com/Gabrielzouad/Global-Seach-component.git)
 cd my-app
 npm install
 ```
