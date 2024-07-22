@@ -136,88 +136,164 @@ export const useSearchHandler = (
 };
 ```
 
+
+
 ## How to Create the Global Search Component
 
 The global search component is composed of several parts:
 
 1. **Search Input Component**
 
-   The `SearchInput` component handles the user input for the search query. It updates the search query state using the `setQuery` function from the `useSearchHandler` hook.
+   The `SearchInput` component handles the user input for the search query and displays the search results. It uses the `useSearchHandler` hook to manage the search state and logic.
 
    ```javascript
-   import React from 'react';
+   import * as React from 'react';
+   import { GlobeIcon, CubeIcon, ReaderIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
+   import { KeywordCategory, SearchInputProps } from '@/lib/types';
+   import { useSearchHandler } from '@/lib/hooks';
 
-   const SearchInput = ({ query, setQuery }) => {
+   const SearchInput: React.FC<SearchInputProps> = ({ isVisible, toggleSearch }) => {
+     const [query, setQuery] = React.useState<string>('');
+     const [results, setResults] = React.useState<KeywordCategory[]>([]);
+     const icons: { [key: string]: React.ReactNode } = {
+       Documentation: <GlobeIcon />,
+       Inspiration: <CubeIcon />,
+       Guides: <ReaderIcon />,
+     };
+
+     const { searchContainerRef, searchInputRef } = useSearchHandler(
+       isVisible,
+       toggleSearch,
+       query,
+       setQuery,
+       setResults
+     );
+
+     if (!isVisible) return null;
+
      return (
-       <input
-         type="text"
-         value={query}
-         onChange={(e) => setQuery(e.target.value)}
-         placeholder="Search..."
-         className="search-input"
-       />
+       <div className='fixed inset-0 z-50 bg-background/80 backdrop-blur-sm animate-in fade-in-0'>
+         <div
+           id='search-container'
+           ref={searchContainerRef}
+           className='fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white border border-gray-300 rounded-lg'
+         >
+           <div className='flex justify-center items-center border-b px-3'>
+             <MagnifyingGlassIcon className='h-4 w-4 shrink-0 opacity-50' />
+             <input
+               ref={searchInputRef}
+               type='text'
+               value={query}
+               onChange={(e) => setQuery(e.target.value)}
+               className='w-96 p-2 rounded focus:outline-none'
+               placeholder='Search...'
+             />
+           </div>
+           {results.length > 0 && (
+             <div className='border-gray-300 rounded shadow-md bg-white max-h-72 overflow-y-auto'>
+               {results.map((result, index) => (
+                 <div key={index}>
+                   <div className='px-2 py-2 font-extrabold text-xs'>
+                     {result.category}
+                   </div>
+                   <ul>
+                     {result.items.map((item, idx) => (
+                       <li key={idx} className='px-4 py-2 hover:bg-gray-200'>
+                         <a href={item.href} className='flex gap-1 items-center'>
+                           <i className='h-6 w-6 flex items-center'>
+                             {icons[result.category]}
+                           </i>
+                           <p className='text-md font-medium'>{item.name}</p>
+                         </a>
+                       </li>
+                     ))}
+                   </ul>
+                 </div>
+               ))}
+             </div>
+           )}
+         </div>
+       </div>
      );
    };
 
    export default SearchInput;
    ```
 
-2. **Search Results Component**
+2. **Hook Implementation**
 
-   The `SearchResults` component displays the search results. It receives the `results` array from the `useSearchHandler` hook and renders each result.
-
-   ```javascript
-   import React from 'react';
-
-   const SearchResults = ({ results }) => {
-     return (
-       <ul className="search-results">
-         {results.map((result, index) => (
-           <li key={index}>{result}</li>
-         ))}
-       </ul>
-     );
-   };
-
-   export default SearchResults;
-   ```
-
-3. **Integrating Components and Hooks**
-
-   The main component (e.g., `pages/index.js`) integrates the search components and hooks. It uses the `useSearchHandler` hook to manage the search state and the `useDebounce` hook to debounce the search query.
+   The `useSearchHandler` hook manages the state and logic for the global search functionality. It handles keyboard shortcuts, clicks outside the search container, and updates the search results based on the query.
 
    ```javascript
-   import React, { useState } from 'react';
-   import SearchInput from '../components/SearchInput';
-   import SearchResults from '../components/SearchResults';
-   import { useSearchHandler } from '../lib/hooks';
+   import { useEffect, useRef } from 'react';
+   import { KeywordCategory } from './types';
+   import { keywords } from './constants';
 
-   const Home = () => {
-     const [isVisible, setIsVisible] = useState(false);
-     const [query, setQuery] = useState('');
-     const [results, setResults] = useState([]);
-     const { searchContainerRef, searchInputRef } = useSearchHandler(
-       isVisible,
-       setIsVisible,
-       query,
-       setQuery,
-       setResults
-     );
+   export const useSearchHandler = (
+     isVisible: boolean,
+     toggleSearch: (state: boolean) => void,
+     query: string,
+     setQuery: React.Dispatch<React.SetStateAction<string>>,
+     setResults: React.Dispatch<React.SetStateAction<KeywordCategory[]>>
+   ) => {
+     const searchContainerRef = useRef<HTMLDivElement>(null);
+     const searchInputRef = useRef<HTMLInputElement>(null);
 
-     return (
-       <div ref={searchContainerRef}>
-         <button onClick={() => setIsVisible(true)}>Open Search</button>
-         {isVisible && (
-           <>
-             <SearchInput query={query} setQuery={setQuery} />
-             <SearchResults results={results} />
-           </>
-         )}
-       </div>
-     );
+     useEffect(() => {
+       const handleKeyDown = (event: KeyboardEvent) => {
+         if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+           event.preventDefault();
+           if (!isVisible) {
+             toggleSearch(true);
+           }
+         }
+       };
+       const handleClickOutside = (event: MouseEvent) => {
+         if (
+           searchContainerRef.current &&
+           !searchContainerRef.current.contains(event.target as Node)
+         ) {
+           toggleSearch(false);
+         }
+       };
+
+       document.addEventListener('keydown', handleKeyDown);
+       document.addEventListener('mousedown', handleClickOutside);
+
+       return () => {
+         document.removeEventListener('keydown', handleKeyDown);
+         document.removeEventListener('mousedown', handleClickOutside);
+       };
+     }, [isVisible, toggleSearch]);
+
+     useEffect(() => {
+       if (isVisible && searchInputRef.current) {
+         searchInputRef.current.focus();
+       }
+     }, [isVisible]);
+
+     useEffect(() => {
+       if (query) {
+         const filteredResults = Object.keys(keywords)
+           .map((category) => ({
+             category,
+             items: keywords[category].filter((keyword) =>
+               keyword.name.toLowerCase().includes(query.toLowerCase())
+             ),
+           }))
+           .filter((result) => result.items.length > 0);
+         setResults(filteredResults);
+       } else {
+         const initialResults = Object.keys(keywords).map((category) => ({
+           category,
+           items: keywords[category],
+         }));
+         setResults(initialResults);
+       }
+     }, [query, setResults]);
+
+     return { searchContainerRef, searchInputRef };
    };
-
-   export default Home;
    ```
 
 ## Contributing
@@ -232,7 +308,3 @@ If you would like to contribute to this project, please follow these guidelines:
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-Feel free to modify this README as necessary to fit the specifics of your project. Let me know if you need any more details or additional sections!
